@@ -7,8 +7,8 @@ $config = TOML.load_file('config.toml')
 $config["env"].each { |k,v| ENV[k] = v }
 
 class Pubkey < Thor
-  class_option %w( force_update -f ) => false
-  class_option %w( silent -s ) => false
+  class_option :force_update, aliases: "-f", default: false
+  class_option :silent, aliases: "-s", default: false
 
   desc "host HOST", "Get public keys for a single repo"
   def host(host_name)
