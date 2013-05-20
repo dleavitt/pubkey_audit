@@ -4,22 +4,23 @@ module PubkeyAudit
 
     attr_accessor :name, :config, :keys, :users, :anonymous_keys
 
-    def self.retrieve_keys(hosts, concurrency: 8, force_update: false, &block)
+    def self.retrieve_keys(hosts, options = {}, &block)
+      concurrency = options.delete(:concurrency) || 8
       parallel_options = { in_threads: concurrency}
       parallel_options[:finish] = block if block_given?
 
       hosts = Parallel.map hosts, parallel_options do |name_or_options|
-        Host.init_and_load(name_or_options, force_update)
+        Host.init_and_load(name_or_options, options)
       end
     end
 
-    def self.init_and_load(name, force_update = false)
-      host = new(name)
+    def self.init_and_load(name, options)
+      force_update = options.delete(:force_update) || false
+      host = new(name, options)
       if host.keys_saved? && ! force_update
         host.load_keys
       else
-        host.retrieve_keys
-        host.save_keys
+        host.retrieve_keys and host.save_keys
       end
       host
     end
@@ -42,8 +43,9 @@ module PubkeyAudit
         @name = host_name
       end
 
-      @retriever  = options[:retriever] || Retriever.new(self)
-      @storage    = options[:storage]   || Storage.new(self)
+      @retriever    = options[:retriever] || Retriever.new(self)
+      @storage      = options[:storage]   || Storage.new(self)
+      @ssh_options  =  options[:ssh] || {}
     end
 
     # Needs an array of [ {key: user}, {key: user} ]
@@ -61,7 +63,7 @@ module PubkeyAudit
 
     def ssh_start
       out = ""
-      Net::SSH.start(host_name, user) do |ssh|
+      Net::SSH.start(host_name, user, @ssh_options) do |ssh|
         out = yield(ssh)
       end
       @status = true
@@ -96,7 +98,7 @@ module PubkeyAudit
       { name: name,
         uri: "#{user}@#{host_name}",
         keys: keys,
-        users: @users.map(&:to_h),
+        users: @users && @users.map(&:to_h),
         anonymous_keys: @anonymous_keys,
         message: @retriever.message, }
     end

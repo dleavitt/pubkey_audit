@@ -12,7 +12,10 @@ class Pubkey < Thor
 
   desc "host HOST", "Get public keys for a single repo"
   def host(host_name)
-    host = PubkeyAudit::Host.init_and_load(host_name, options[:force_update])
+    host = PubkeyAudit::Host.init_and_load(host_name, {
+      force_update: options[:force_update],
+    })
+                                            
     users = get_users
     PubkeyAudit::Mapper.new([host], users).map
     puts host.to_h.to_yaml unless options[:silent]
@@ -28,6 +31,7 @@ class Pubkey < Thor
     hosts = PubkeyAudit::Host.retrieve_keys(config["hosts"], {
       concurrency: options[:concurrency],
       force_update: options[:force_update],
+      ssh: { auth_methods: ["pubkey"] },
     }) { |_,_| bar.increment }
 
     users = get_users
