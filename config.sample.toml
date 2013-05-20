@@ -1,0 +1,9 @@
+# Host aliases from your ~/.ssh/config file
+hosts = [ "example.com", "test.net", "testserv" ]
+
+[env]
+# creds from your google docs account
+GOOGLE_CLIENT_ID =        ""
+GOOGLE_CLIENT_SECRET =    ""
+GOOGLE_REFRESH_TOKEN =    ""
+GOOGLE_SPREADSHEET_KEY =  ""
