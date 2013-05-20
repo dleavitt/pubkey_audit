@@ -18,7 +18,7 @@ class Pubkey < Thor
                                             
     users = get_users
     PubkeyAudit::Mapper.new([host], users).map
-    puts host.to_h.to_yaml unless options[:silent]
+    puts PubkeyAudit::Host::Formatter.pp([host]) unless options[:silent]
   end
 
   desc "hosts", "Get public keys for all repos in config.toml"
@@ -39,7 +39,7 @@ class Pubkey < Thor
     PubkeyAudit::Mapper.new(hosts, users).map
 
     # TODO: remove user keys to make this more readable
-    puts hosts.map(&:to_h).to_yaml unless options[:silent]
+    puts PubkeyAudit::Host::Formatter.pp(hosts)
   end
 
   desc "users", "Retrieves the identity mapping from the server"

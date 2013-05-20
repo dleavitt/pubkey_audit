@@ -2,7 +2,7 @@ module PubkeyAudit
   class Host
     class ConfigMissingError < StandardError; end
 
-    attr_accessor :name, :config, :keys, :users, :anonymous_keys
+    attr_accessor :name, :config, :keys, :users, :anonymous_keys, :retriever
 
     def self.retrieve_keys(hosts, options = {}, &block)
       concurrency = options.delete(:concurrency) || 8
@@ -51,13 +51,14 @@ module PubkeyAudit
     # Needs an array of [ {key: user}, {key: user} ]
     # sets the users and anonymous keys hashes
     def map_users(users_hash)
-      @users = if keys
+      if keys
         @anonymous_keys, users =  keys.map { |key| [ key, users_hash[key] ] }
                                       .partition { |key, user| user.nil? }
 
-        @users = users.map { |key, user| user }
+        @users = users.map { |_, user| user }
+        @anonymous_keys = @anonymous_keys.map { |key, _| key }
       else
-        nil
+        @users = nil
       end
     end
 
@@ -92,28 +93,6 @@ module PubkeyAudit
 
     def keys_saved?
       @storage.exists?
-    end
-
-    def to_h
-      { name: name,
-        uri: "#{user}@#{host_name}",
-        keys: keys,
-        users: @users && @users.map(&:to_h),
-        anonymous_keys: @anonymous_keys,
-        message: @retriever.message, }
-    end
-
-    def heading
-      "#{name}\n#{user}@#{host_name}\n"
-    end
-
-    def pp
-      str = heading
-      if keys
-        str += keys.join("\n")
-      elsif @retriever.message
-        str += @retriever.message
-      end
     end
   end
 end
