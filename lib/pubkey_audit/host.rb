@@ -5,6 +5,7 @@ module PubkeyAudit
     attr_accessor :name, :config, :keys, :users, :anonymous_keys, :retriever
 
     def self.retrieve_keys(hosts, options = {}, &block)
+      options = options.dup
       concurrency = options.delete(:concurrency) || 8
       parallel_options = { in_threads: concurrency}
       parallel_options[:finish] = block if block_given?
@@ -15,6 +16,7 @@ module PubkeyAudit
     end
 
     def self.init_and_load(name, options)
+      options = options.dup
       force_update = options.delete(:force_update) || false
       host = new(name, options)
       if host.keys_saved? && ! force_update
