@@ -7,7 +7,9 @@ module PubkeyAudit
 
     def map
       pk_to_user_map = {}
-      @users.each { |user| user.keys.each { |key| pk_to_user_map[key] = user } }
+      @users.each do |user|
+        user.keys.each { |key| pk_to_user_map[key.gsub(/ \S+$/, '')] = user }
+      end
 
       @hosts.map do |host|
         host.map_users(pk_to_user_map)

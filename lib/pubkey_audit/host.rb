@@ -54,7 +54,7 @@ module PubkeyAudit
     # sets the users and anonymous keys hashes
     def map_users(users_hash)
       if keys
-        @anonymous_keys, users =  keys.map { |key| [ key, users_hash[key] ] }
+        @anonymous_keys, users =  keys.map { |key| [ key, users_hash[key.gsub(/ \S+$/, '')] ] }
                                       .partition { |key, user| user.nil? }
 
         @users = users.map { |_, user| user }
