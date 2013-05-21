@@ -37,8 +37,10 @@ module PubkeyAudit
         if host.users
           str += "Users\n"
           host.users.each { |user| str += "    #{user.name} <#{user.email}>\n" }
-          str += "Unknown Keys\n"
-          host.anonymous_keys.each { |k| str += "#{k}\n" }
+          if host.anonymous_keys.any?
+            str += "Unknown Keys (#{host.anonymous_keys.length})\n"
+            host.anonymous_keys.each { |k| str += "#{k}\n" }
+          end
         elsif host.retriever.message
           str += host.retriever.message
         end

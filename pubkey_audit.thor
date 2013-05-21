@@ -15,7 +15,7 @@ class Pubkey < Thor
     host = PubkeyAudit::Host.init_and_load(host_name, {
       force_update: options[:force_update],
     })
-                                            
+
     users = get_users
     PubkeyAudit::Mapper.new([host], users).map
     puts PubkeyAudit::Host::Formatter.pp([host]) unless options[:silent]
@@ -26,13 +26,13 @@ class Pubkey < Thor
   def hosts
     bar = ProgressBar.create( title: "Scanning for PKs",
                               total: config["hosts"].length,
-                              format: "%t (%c/%C): |%B|")
+                              format: "%t (%c/%C): |%B|") if STDOUT.tty?
 
     hosts = PubkeyAudit::Host.retrieve_keys(config["hosts"], {
       concurrency: options[:concurrency],
       force_update: options[:force_update],
       ssh: { auth_methods: ["pubkey"] },
-    }) { |_,_| bar.increment }
+    }) { |_,_| bar.increment if STDOUT.tty? }
 
     users = get_users
 
