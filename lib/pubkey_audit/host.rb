@@ -9,7 +9,6 @@ module PubkeyAudit
       concurrency = options.delete(:concurrency) || 8
       parallel_options = { in_threads: concurrency}
       parallel_options[:finish] = block if block_given?
-
       hosts = Parallel.map hosts, parallel_options do |name_or_options|
         Host.init_and_load(name_or_options, options)
       end

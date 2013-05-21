@@ -7,8 +7,8 @@ $config = TOML.load_file('config.toml')
 $config["env"].each { |k,v| ENV[k] = v }
 
 class Pubkey < Thor
-  class_option :force_update, aliases: "-f", default: false
-  class_option :silent, aliases: "-s", default: false
+  class_option :force_update, aliases: "-f", default: false, type: :boolean
+  class_option :silent, aliases: "-s", default: false, type: :boolean
 
   desc "host HOST", "Get public keys for a single repo"
   def host(host_name)
@@ -31,7 +31,7 @@ class Pubkey < Thor
     hosts = PubkeyAudit::Host.retrieve_keys(config["hosts"], {
       concurrency: options[:concurrency],
       force_update: options[:force_update],
-      ssh: { auth_methods: ["pubkey"] },
+      ssh: { auth_methods: ["publickey"] },
     }) { |_,_| bar.increment if STDOUT.tty? }
 
     users = get_users
