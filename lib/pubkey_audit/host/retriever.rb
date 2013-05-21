@@ -29,9 +29,9 @@ module PubkeyAudit
 
       def parse_key_file(key_string)
         key_string.split("\n").find_all { |line|
-          line !=~ /^\s*#/ && line =~ /^\s*ssh-\w+/
+          line !=~ /^\s*#/ && line =~ /^\s*ssh-(rsa|dss) /
         }.map { |line|
-          line[/ssh-\w+ .*$/]
+          line[/ssh-(rsa|dss) .*$/]
         }
       end
     end
