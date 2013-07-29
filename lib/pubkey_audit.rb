@@ -11,7 +11,7 @@ require 'yaml'
 require "pubkey_audit/host"
 require "pubkey_audit/host/retriever"
 require "pubkey_audit/host/storage"
-require "pubkey_audit/host/formatter"
+require "pubkey_audit/host/key_map"
 require "pubkey_audit/mapper"
 require "pubkey_audit/user"
 require "pubkey_audit/user/csv_converters"

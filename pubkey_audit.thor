@@ -1,7 +1,9 @@
 require 'thor'
 require 'pry'
 require 'toml'
+require 'highline/import'
 require './lib/pubkey_audit'
+require "./lib/pubkey_audit/cli/formatter"
 
 $config = TOML.load_file('config.toml')
 $config["env"].each { |k,v| ENV[k] = v }
@@ -9,6 +11,43 @@ $config["env"].each { |k,v| ENV[k] = v }
 class Pubkey < Thor
   class_option :force_update, aliases: "-f", default: false, type: :boolean
   class_option :silent, aliases: "-s", default: false, type: :boolean
+
+  desc "interactive", "Stuff"
+  def interactive
+    puts "Select a host"
+    host_name = choose(*config["hosts"].sort)
+    host = PubkeyAudit::Host.init_and_load(host_name, {
+      force_update: options[:force_update],
+    })
+    users = get_users
+    PubkeyAudit::Mapper.new([host], users).map
+
+    host.ssh_start do |ssh|
+      loop do
+        puts "Authorized keys"
+        key = choose do |m|
+          host.key_map.key_map.each do |key, user|
+            if user
+              str = set_color("#{user.name}: #{key[0..6]}...#{key[-16..-1]}", :green)
+              m.choice(str) { key }
+            else
+              str = set_color("anon: #{key[0..6]}...#{key[-16..-1]}", :red)
+              m.choice(str) { key }
+            end
+          end
+
+          m.choice("Exit") { break(2) }
+        end
+
+        if yes? "Really delete key #{key[0..6]}...#{key[-16..-1]}?"
+          keys = ssh.exec!("cat ~/.ssh/authorized_keys").split("\n")
+            .select { |line| line !=~ /^\s*#/ && line[key] }
+          # TODO: delete keys
+          # TODO: not all keys are showing up
+        end
+      end
+    end
+  end
 
   desc "host HOST", "Get public keys for a single repo"
   def host(host_name)
@@ -18,7 +57,7 @@ class Pubkey < Thor
 
     users = get_users
     PubkeyAudit::Mapper.new([host], users).map
-    puts PubkeyAudit::Host::Formatter.pp([host]) unless options[:silent]
+    puts PubkeyAudit::CLI::Formatter.pp([host]) unless options[:silent]
   end
 
   desc "hosts", "Get public keys for all repos in config.toml"
@@ -39,7 +78,7 @@ class Pubkey < Thor
     PubkeyAudit::Mapper.new(hosts, users).map
 
     # TODO: remove user keys to make this more readable
-    puts PubkeyAudit::Host::Formatter.pp(hosts)
+    puts PubkeyAudit::CLI::Formatter.pp(hosts)
   end
 
   desc "users", "Retrieves the identity mapping from the server"

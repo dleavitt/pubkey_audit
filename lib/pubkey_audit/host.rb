@@ -2,7 +2,7 @@ module PubkeyAudit
   class Host
     class ConfigMissingError < StandardError; end
 
-    attr_accessor :name, :config, :keys, :users, :anonymous_keys, :retriever
+    attr_accessor :name, :config, :keys, :key_map, :retriever
 
     def self.retrieve_keys(hosts, options = {}, &block)
       options = options.dup
@@ -14,7 +14,7 @@ module PubkeyAudit
       end
     end
 
-    def self.init_and_load(name, options)
+    def self.init_and_load(name, options = {})
       options = options.dup
       force_update = options.delete(:force_update) || false
       host = new(name, options)
@@ -52,15 +52,7 @@ module PubkeyAudit
     # Needs an array of [ {key: user}, {key: user} ]
     # sets the users and anonymous keys hashes
     def map_users(users_hash)
-      if keys
-        @anonymous_keys, users =  keys.map { |key| [ key, users_hash[key.gsub(/ \S+$/, '')] ] }
-                                      .partition { |key, user| user.nil? }
-
-        @users = users.map { |_, user| user }
-        @anonymous_keys = @anonymous_keys.map { |key, _| key }
-      else
-        @users = nil
-      end
+      @key_map = KeyMap.new(keys, users_hash)
     end
 
     def ssh_start
