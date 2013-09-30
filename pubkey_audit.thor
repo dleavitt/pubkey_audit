@@ -2,8 +2,10 @@ require 'thor'
 require 'pry'
 require 'toml'
 require 'highline/import'
-require './lib/pubkey_audit'
-require "./lib/pubkey_audit/cli/formatter"
+
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), 'lib')
+require 'pubkey_audit'
+require "pubkey_audit/cli/formatter"
 
 $config = TOML.load_file('config.toml')
 $config["env"].each { |k,v| ENV[k] = v }

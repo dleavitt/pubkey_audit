@@ -34,7 +34,7 @@ module PubkeyAudit
 
       def pp
         str = "## HOST: #{host.name} ##\n#{host.user}@#{host.host_name}\n"
-        if host.key_map.users
+        if host.key_map.users.any?
           str += "Users\n"
           host.key_map.users.each { |user| str += "    #{user.name} <#{user.email}>\n" }
           if host.key_map.anonymous_keys.any?

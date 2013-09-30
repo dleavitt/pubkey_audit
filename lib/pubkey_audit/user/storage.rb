@@ -3,6 +3,7 @@ module PubkeyAudit
     class Storage
       def initialize(imap)
         @imap = imap
+        FileUtils.mkdir_p(File.join(Dir.tmpdir, "pubkey_audit"))
       end
 
       def load
