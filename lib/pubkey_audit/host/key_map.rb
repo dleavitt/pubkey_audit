@@ -9,8 +9,7 @@ module PubkeyAudit
         @anonymous_keys = []
         if keys
           keys.each do |key|
-            key.gsub!(/ \S+$/, '')
-            user = users_hash[key]
+            user = users_hash[key.gsub(/ \S+$/, '')]
             @key_map[key] = user
             if user
               @users << user
